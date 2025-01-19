@@ -5,7 +5,8 @@ import configparser
 import os
 import logging
 
-class FirefoxHistory():
+
+class ZenHistory:
     def __init__(self):
         #   Aggregate results
         self.aggregate = None
@@ -20,18 +21,18 @@ class FirefoxHistory():
         #   TODO:   Regular updates of the temporary file
         temporary_history_location = tempfile.mktemp()
         shutil.copyfile(history_location, temporary_history_location)
-        #   Open Firefox history database
+        #   Open Zen history database
         self.conn = sqlite3.connect(temporary_history_location)
         #   External functions
-        self.conn.create_function('hostname',1,self.__getHostname)
+        self.conn.create_function("hostname", 1, self.__getHostname)
 
     def searchPlaces(self):
-        #   Firefox folder path
-        firefox_path = os.path.join(os.environ['HOME'], '.mozilla/firefox/')
-        if os.path.exists(firefox_path) is False:
-            firefox_path = os.path.join(os.environ['HOME'], 'snap/firefox/common/.mozilla/firefox/')
-        #   Firefox profiles configuration file path
-        conf_path = os.path.join(firefox_path,'profiles.ini')
+        #   Zen folder path
+        zen_path = os.path.join(os.environ["HOME"], ".var/app/app.zen_browser.zen/.zen")
+        if os.path.exists(zen_path) is False:
+            zen_path = os.path.join(os.environ["HOME"], "snap/zen/common/.mozilla/zen/")
+        #   Zen profiles configuration file path
+        conf_path = os.path.join(zen_path, "profiles.ini")
 
         # Debug
         logging.debug("Config path %s" % conf_path)
@@ -39,14 +40,14 @@ class FirefoxHistory():
             logging.error("Firefox profiles.ini not found")
             return None
 
-        #   Profile config parse
+        #   Zen Profile config parse
         profile = configparser.RawConfigParser()
         profile.read(conf_path)
         prof_path = profile.get("Profile0", "Path")
 
         #   Sqlite db directory path
-        sql_path = os.path.join(firefox_path,prof_path)
-        sql_path = os.path.join(sql_path,'places.sqlite')
+        sql_path = os.path.join(zen_path, prof_path)
+        sql_path = os.path.join(sql_path, "places.sqlite")
 
         # Debug
         logging.debug("Sql path %s" % sql_path)
@@ -56,59 +57,61 @@ class FirefoxHistory():
 
         return sql_path
 
-
     #   Get hostname from url
-    def __getHostname(self,str):
-        url = str.split('/')
-        if len(url)>2:
+    def __getHostname(self, str):
+        url = str.split("/")
+        if len(url) > 2:
             return url[2]
         else:
-            return 'Unknown'
+            return "Unknown"
 
-    def search(self,query_str):
+    def search(self, query_str):
         #   Aggregate URLs by hostname
         if self.aggregate == "true":
-            query = 'SELECT hostname(url)'
+            query = "SELECT hostname(url)"
         else:
-            query = 'SELECT DISTINCT url'
-        query += ',title FROM moz_places WHERE'
+            query = "SELECT DISTINCT url"
+        query += ",title FROM moz_places WHERE"
         #   Search terms
-        terms = query_str.split(' ')
+        terms = query_str.split(" ")
         for term in terms:
-            query += ' ((url LIKE "%%%s%%") OR (title LIKE "%%%s%%")) AND' % (term,term)
+            query += ' ((url LIKE "%%%s%%") OR (title LIKE "%%%s%%")) AND' % (
+                term,
+                term,
+            )
         #   Delete last AND
-        query = query[:-4]
+        #   Zen Frecency
 
         if self.aggregate == "true":
-            query += ' GROUP BY hostname(url) ORDER BY '
-            #   Firefox Frecency
-            if self.order == 'frecency':
-                query += 'sum(frecency)'
+            query += " GROUP BY hostname(url) ORDER BY "
+            #   Zen Frecency
+            if self.order == "frecency":
+                query += "sum(frecency)"
             #   Visit Count
-            elif self.order == 'visit':
-                query += 'sum(visit_count)'
+            elif self.order == "visit":
+                query += "sum(visit_count)"
             #   Last Visit
-            elif self.order == 'recent':
-                query += 'max(last_visit_date)'
+            elif self.order == "recent":
+                query += "max(last_visit_date)"
             #   Not sorted
             else:
-                query += 'hostname(url)'
+                query += "hostname(url)"
         else:
-            query += ' ORDER BY '
+            query += " ORDER BY "
             #   Firefox Frecency
-            if self.order == 'frecency':
-                query += 'frecency'
+            if self.order == "frecency":
+                query += "frecency"
             #   Visit Count
-            elif self.order == 'visit':
-                query += 'visit_count'
+            elif self.order == "visit":
+                query += "visit_count"
             #   Last Visit
-            elif self.order == 'recent':
-                query += 'last_visit_date'
+            elif self.order == "recent":
+                query += "last_visit_date"
             #   Not sorted
             else:
-                query += 'url'
+                query += "url"
 
-        query += ' DESC LIMIT %d' % self.limit
+        query += " DESC LIMIT %d" % self.limit
 
         #   Query execution
         try:

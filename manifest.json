@@ -1,6 +1,6 @@
 {
     "required_api_version": "^2.0.0",
-    "name": "Firefox History",
+    "name": "Zen History",
     "description": "Search into Firefox history",
     "developer_name": "Riccardo Massidda",
     "icon": "images/icon.png",
@@ -12,7 +12,7 @@
         "id": "kw",
         "type": "keyword",
         "name": "Firefox History",
-        "default_value": "fh"
+        "default_value": "zh"
       },
       {
         "id": "aggregate",
