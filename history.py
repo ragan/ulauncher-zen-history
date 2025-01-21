@@ -37,7 +37,7 @@ class ZenHistory:
         # Debug
         logging.debug("Config path %s" % conf_path)
         if not os.path.exists(conf_path):
-            logging.error("Firefox profiles.ini not found")
+            logging.error("Zen profiles.ini not found")
             return None
 
         #   Zen Profile config parse
@@ -52,7 +52,7 @@ class ZenHistory:
         # Debug
         logging.debug("Sql path %s" % sql_path)
         if not os.path.exists(sql_path):
-            logging.error("Firefox places.sqlite not found")
+            logging.error("Zen places.sqlite not found")
             return None
 
         return sql_path
